@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:@localhost:3306/africagram"
+
+}
+
+model Utilisateur {
+  id                Int           @id @default(autoincrement())
+  profile           Profile?
+  firstname         String
+  lastname          String
+  email             String        @unique
+  password          String
+  isAdmin           Boolean       @default(false)
+  date_creation     DateTime      @default(now())
+  date_modification DateTime      @updatedAt
+  posts             Post[]
+  likes             Aime[]
+  commentaires      Commentaire[]
+  followers         Follower[]    @relation("Following")
+  following         Follower[]    @relation("Follower")
+}
+
+model Profile {
+  id                Int           @id @default(autoincrement())
+  utilisateur       Utilisateur   @relation(fields: [id_utilisateur], references: [id])
+  id_utilisateur    Int           @unique
+  sexe              String?
+  pays              String?
+  ville             String?
+  date_creation     DateTime      @default(now())
+  date_modification DateTime      @updatedAt
+}
+
+model Post {
+  id                Int           @id @default(autoincrement())
+  utilisateur       Utilisateur   @relation(fields: [utilisateur_id], references: [id])
+  utilisateur_id    Int
+  caption           String?
+  image_url         String?       @db.VarChar(750)
+  total_likes       Int           @default(0)
+  date_creation     DateTime      @default(now())
+  date_modification DateTime      @updatedAt
+  likes             Aime[]
+  commentaires      Commentaire[]
+}
+
+model Aime {
+  id                Int           @id @default(autoincrement())
+  utilisateur       Utilisateur   @relation(fields: [utilisateur_id], references: [id])
+  utilisateur_id    Int
+  post              Post          @relation(fields: [post_id], references: [id])
+  post_id           Int
+  date_creation     DateTime      @default(now())
+}
+
+model Commentaire {
+  id                Int           @id @default(autoincrement())
+  utilisateur       Utilisateur   @relation(fields: [utilisateur_id], references: [id])
+  utilisateur_id    Int
+  post              Post          @relation(fields: [post_id], references: [id])
+  post_id           Int
+  message           String
+  date_creation     DateTime      @default(now())
+}
+
+model Follower {
+  id                Int           @id @default(autoincrement())
+  following         Utilisateur   @relation("Following", fields: [following_id], references: [id])
+  following_id      Int
+  follower          Utilisateur   @relation("Follower", fields: [follower_id], references: [id])
+  follower_id       Int
+  date_creation     DateTime      @default(now())
+  @@unique([following_id, follower_id])
+}
